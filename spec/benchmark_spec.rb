@@ -37,7 +37,7 @@ end
 PORT = 3030
 HOSTS = [Host.new('Local', 'localhost'), Host.new('LAN', 'overmind.party'), Host.new('Internet', 'ec2-54-179-177-145.ap-southeast-1.compute.amazonaws.com')]
 FILES = [File.new('spec/test_files/small.txt'), File.new('spec/test_files/medium.jpg')]
-PROTOCOLS = [Protocol.new('tcp', TCPServer, TCPClient), Protocol.new('udp', UDPServer, UDPClient)]
+PROTOCOLS = [Protocol.new('tcp', TCPControlServer, TCPControlClient), Protocol.new('udp', UDPServer, UDPClient)]
 
 def size(numb)
   ActiveSupport::NumberHelper.number_to_human_size(numb, {precision: 4, strip_insignificant_zeros: false})
@@ -88,6 +88,16 @@ def update_time(results, close=false)
 end
 
 describe 'Benchmark' do
+  it 'sends and receives a file through aws with tcp' do
+    client = TCPControlClient.new 'ec2-54-179-177-145.ap-southeast-1.compute.amazonaws.com', 3030
+    file_name = 'medium.jpg'
+    client.send('spec/test_files/' + file_name)
+    f = client.receive
+    File.open('spec/received_files/' + file_name, 'w') { |file| file.write(f) }
+
+    expect(FileUtils.identical?('spec/test_files/' + file_name, 'spec/received_files/' + file_name)).to be_truthy, 'received file is different than sent file'
+  end
+
   results = {}
 
   HOSTS.each do |host|
