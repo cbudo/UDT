@@ -8,3 +8,8 @@
 /spec/reports/
 /tmp/
 .idea/
+~*.xlsx
+.~lock*
+nohup.out
+spec/received_files/*
+!spec/received_files/.keep
